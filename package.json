@@ -12,6 +12,8 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:seed": "prisma db seed",
+    "db:seed:content": "tsx src/prisma/seed-content.ts",
+    "db:seed:all": "pnpm db:seed && pnpm db:seed:content",
     "db:studio": "prisma studio"
   },
   "dependencies": {
@@ -31,12 +33,14 @@
     "lucide-react": "^0.575.0",
     "next": "16.1.6",
     "next-auth": "^4.24.13",
+    "pdf-parse": "^2.4.5",
     "pdfjs-dist": "^3.11.174",
     "pg": "^8.18.0",
     "radix-ui": "^1.4.3",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "tailwind-merge": "^3.5.0",
+    "tesseract.js": "^7.0.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {
