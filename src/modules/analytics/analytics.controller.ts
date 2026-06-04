@@ -3,7 +3,7 @@ import AnalyticsService from './analytics.service';
 import { SetCookies } from '@/lib/auth/cookies';
 
 export default class AnalyticsController {
-  static async getAnalytics(req: Request) {
+  static async getAnalytics(_req: Request) {
     try {
       const access_token = await SetCookies.verifyCookies();
 
