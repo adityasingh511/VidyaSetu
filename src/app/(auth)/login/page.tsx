@@ -44,7 +44,7 @@ export default function LoginPage() {
 
   const handleLoginWithGoogle = async () => {
     await signIn('google', {
-      callbackUrl: '/dashborad',
+      callbackUrl: '/dashboard',
     });
   };
 
