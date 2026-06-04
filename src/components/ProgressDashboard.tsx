@@ -107,8 +107,8 @@ function ProgressDashboard({
             <TrendingUp className="size-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{displayData.overallPercentage}%</div>
-            <ProgressBar value={displayData.overallPercentage} size="sm" showLabel={false} />
+            <div className="text-2xl font-bold">{displayData.overallPercentage ?? 0}%</div>
+            <ProgressBar value={displayData.overallPercentage ?? 0} size="sm" showLabel={false} />
           </CardContent>
         </Card>
 
@@ -118,7 +118,7 @@ function ProgressDashboard({
             <BookOpen className="size-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{displayData.totalQuizzes}</div>
+            <div className="text-2xl font-bold">{displayData.totalQuizzes ?? 0}</div>
             <p className="text-xs text-muted-foreground">Total attempts</p>
           </CardContent>
         </Card>
@@ -130,10 +130,10 @@ function ProgressDashboard({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {Math.round(displayData.totalTimeSpent / 60)}h
+              {Math.round((displayData.totalTimeSpent ?? 0) / 60)}h
             </div>
             <p className="text-xs text-muted-foreground">
-              {displayData.totalTimeSpent} minutes total
+              {displayData.totalTimeSpent ?? 0} minutes total
             </p>
           </CardContent>
         </Card>
@@ -144,19 +144,19 @@ function ProgressDashboard({
             <Award className="size-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{displayData.streakDays}</div>
+            <div className="text-2xl font-bold">{displayData.streakDays ?? 0}</div>
             <p className="text-xs text-muted-foreground">Days active</p>
           </CardContent>
         </Card>
       </div>
 
-      {displayData.subjects.length > 0 && (
+      {displayData.subjects?.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle>Subject Progress</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
-            {displayData.subjects.map((subject) => (
+            {displayData.subjects?.map((subject) => (
               <ProgressBar
                 key={subject.subject}
                 label={subject.subject}
@@ -170,7 +170,7 @@ function ProgressDashboard({
       )}
 
       <div className="grid gap-6 lg:grid-cols-2">
-        {displayData.accuracyTrend.length > 0 && (
+        {displayData.accuracyTrend?.length > 0 && (
           <Card>
             <CardHeader>
               <CardTitle>Accuracy Trend</CardTitle>
@@ -186,7 +186,7 @@ function ProgressDashboard({
           </Card>
         )}
 
-        {displayData.studyTimeByDay.length > 0 && (
+        {displayData.studyTimeByDay?.length > 0 && (
           <Card>
             <CardHeader>
               <CardTitle>Study Time (Last 7 Days)</CardTitle>
@@ -203,14 +203,14 @@ function ProgressDashboard({
         )}
       </div>
 
-      {displayData.achievements.length > 0 && (
+      {displayData.achievements?.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle>Achievements</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-2">
-              {displayData.achievements.map((achievement, i) => (
+              {displayData.achievements?.map((achievement, i) => (
                 <span
                   key={i}
                   className="inline-flex items-center gap-1 rounded-full border bg-secondary/50 px-3 py-1 text-xs font-medium"
@@ -224,14 +224,14 @@ function ProgressDashboard({
         </Card>
       )}
 
-      {displayData.recentChapters.length > 0 && (
+      {displayData.recentChapters?.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle>Recent Chapters</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex flex-col divide-y">
-              {displayData.recentChapters.map((ch, i) => (
+              {displayData.recentChapters?.map((ch, i) => (
                 <div
                   key={i}
                   className="flex items-center justify-between py-2"
