@@ -1,25 +1,33 @@
 import { prisma } from '@/lib/prisma';
 
-// TODO: Implement analytics repository
 export default class AnalyticsRepository {
-  static async getQuizSesssions(userId: string) {
-    // await prisma.user.findUnique({
-    //   where: {
-    //     id: userId,
-    //   },
-    //   include: {
-    //     quizSessions: true,
-    //     quizzes: true,
-
-    //   },
-    // });
-
+  static async getCompletedSessionsWithTopics(
+    userId: string,
+    from?: Date,
+    to?: Date
+  ) {
     return await prisma.quizSession.findMany({
       where: {
-        userId: userId,
+        userId,
+        completedAt: {
+          not: null,
+          ...(from && { gte: from }),
+          ...(to && { lte: to }),
+        },
       },
       include: {
-        responses: true,
+        responses: {
+          include: {
+            question: {
+              include: {
+                topic: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        completedAt: 'desc',
       },
     });
   }
