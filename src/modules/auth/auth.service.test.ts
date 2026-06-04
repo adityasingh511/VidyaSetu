@@ -3,6 +3,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mocks = vi.hoisted(() => ({
   findUserByEmail: vi.fn(),
   findUserByid: vi.fn(),
+  createUser: vi.fn(),
+  enasureGoogleAccountLinked: vi.fn(),
   registerUser: vi.fn(),
   createRefreshToken: vi.fn(),
   findRefreshToken: vi.fn(),
@@ -16,6 +18,8 @@ vi.mock('./auth.repository', () => ({
   AuthRepository: {
     findUserByEmail: mocks.findUserByEmail,
     findUserByid: mocks.findUserByid,
+    createUser: mocks.createUser,
+    enasureGoogleAccountLinked: mocks.enasureGoogleAccountLinked,
     registerUser: mocks.registerUser,
     createRefreshToken: mocks.createRefreshToken,
     findRefreshToken: mocks.findRefreshToken,
@@ -55,18 +59,74 @@ describe('AuthServices', () => {
     mocks.rotateRefreshToken.mockResolvedValue('rotated-refresh-token');
   });
 
+  describe('handleGoogleService', () => {
+    const googlePayload = {
+      email: mockUser.email,
+      name: 'Student User',
+      image: 'https://example.com/avatar.png',
+      providerAccountId: 'google-account-1',
+    };
+
+    it('links a found Google user and returns tokens', async () => {
+      mocks.findUserByEmail.mockResolvedValue(mockUser);
+
+      const result = await AuthServices.handleGoogleService(googlePayload);
+
+      expect(mocks.findUserByEmail).toHaveBeenCalledWith(mockUser.email);
+      expect(mocks.createUser).not.toHaveBeenCalled();
+      expect(mocks.enasureGoogleAccountLinked).toHaveBeenCalledWith(
+        mockUser.id,
+        googlePayload.providerAccountId
+      );
+      expect(mocks.generateAccessToken).toHaveBeenCalledWith({
+        id: mockUser.id,
+        role: mockUser.role,
+        isProfileCompleted: false,
+      });
+      expect(mocks.createRefreshToken).toHaveBeenCalledWith(mockUser.id);
+      expect(result).toEqual({
+        user: mockUser,
+        accessToken: 'access-token',
+        refreshToken: 'refresh-token',
+      });
+    });
+
+    it('throws a clear auth error when Google user creation returns null', async () => {
+      mocks.findUserByEmail.mockResolvedValue(null);
+      mocks.createUser.mockResolvedValue(null);
+
+      await expect(
+        AuthServices.handleGoogleService(googlePayload)
+      ).rejects.toMatchObject({
+        message: 'Unable to create or load Google user',
+        statusCode: 401,
+      });
+
+      expect(mocks.createUser).toHaveBeenCalledWith({
+        email: googlePayload.email,
+        name: googlePayload.name,
+        image: googlePayload.image,
+      });
+      expect(mocks.enasureGoogleAccountLinked).not.toHaveBeenCalled();
+      expect(mocks.generateAccessToken).not.toHaveBeenCalled();
+      expect(mocks.createRefreshToken).not.toHaveBeenCalled();
+    });
+  });
+
   describe('handleRegister', () => {
     it('registers a new user and returns access and refresh tokens', async () => {
       mocks.findUserByEmail.mockResolvedValue(null);
       mocks.registerUser.mockResolvedValue(mockUser);
 
       const result = await AuthServices.handleRegister({
+        name: 'Student User',
         email: mockUser.email,
         password: 'Password@123',
       });
 
       expect(mocks.findUserByEmail).toHaveBeenCalledWith(mockUser.email);
       expect(mocks.registerUser).toHaveBeenCalledWith({
+        name: 'Student User',
         email: mockUser.email,
         password: 'Password@123',
       });
@@ -91,6 +151,7 @@ describe('AuthServices', () => {
 
       await expect(
         AuthServices.handleRegister({
+          name: 'Student User',
           email: mockUser.email,
           password: 'Password@123',
         })

@@ -15,6 +15,7 @@ export class AuthServiceError extends Error {
 
 const INVALID_CREDENTIALS_MESSAGE = 'Invalid email or password';
 const INVALID_REFRESH_TOKEN_MESSAGE = 'Invalid or expired refresh token';
+const GOOGLE_AUTH_USER_MESSAGE = 'Unable to create or load Google user';
 
 export class AuthServices {
   static async handleGoogleService(data: {
@@ -31,6 +32,10 @@ export class AuthServices {
         name: data.name,
         image: data.image,
       });
+    }
+
+    if (!user) {
+      throw new AuthServiceError(GOOGLE_AUTH_USER_MESSAGE, 401);
     }
 
     await AuthRepository.enasureGoogleAccountLinked(
