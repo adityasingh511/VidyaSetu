@@ -5,9 +5,11 @@ import Senv from '../../public/Study environment.png';
 import DV from '../../public/Data visualization.png';
 import { useRouter } from 'next/navigation';
 import Link from "next/link";
+import { SessionProvider, useSession } from 'next-auth/react';
 
-export default function Home() {
+function MainContent() {
   const router = useRouter();
+  const { data: session } = useSession();
   return (
     <div className="flex flex-col h-max w-screen bg-background  ">
       <div className="flex  flex-col min-h-screen  p-4 pl-8 pr-8 ">
@@ -29,9 +31,15 @@ export default function Home() {
               />
             </svg>
 
-            <Link href="/login" className="text-sm font-medium text-black hover:opacity-65 transition-opacity">
-              Login
-            </Link>
+            {session?.user ? (
+              <div className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center">
+                {session.user.name?.[0]?.toUpperCase() ?? 'U'}
+              </div>
+            ) : (
+              <Link href="/login" className="text-sm font-medium text-black hover:opacity-65 transition-opacity">
+                Login
+              </Link>
+            )}
           </div>
         </div>
 
@@ -306,5 +314,13 @@ export default function Home() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <SessionProvider>
+      <MainContent />
+    </SessionProvider>
   );
 }
