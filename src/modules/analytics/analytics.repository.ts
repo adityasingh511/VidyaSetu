@@ -32,4 +32,12 @@ export default class AnalyticsRepository {
 
     return { user, sessionCount, sessions };
   }
+
+  static async getCompletedSessionDates(userId: string) {
+    return prisma.quizSession.findMany({
+      where: { userId, completedAt: { not: null } },
+      select: { completedAt: true },
+      orderBy: { completedAt: 'desc' },
+    });
+  }
 }

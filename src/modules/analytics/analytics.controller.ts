@@ -24,4 +24,26 @@ export default class AnalyticsController {
       return NextResponse.json({ success: false, message }, { status: 500 });
     }
   }
+
+  static async getStreakData(_req: Request) {
+    try {
+      const access_token = await SetCookies.verifyCookies();
+
+      if (!access_token) {
+        return NextResponse.json(
+          { message: 'Authentication required' },
+          { status: 401 }
+        );
+      }
+
+      const res = await AnalyticsService.getStreakData(access_token.sub);
+
+      return NextResponse.json({ success: true, data: res }, { status: 200 });
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : 'Internal server error';
+
+      return NextResponse.json({ success: false, message }, { status: 500 });
+    }
+  }
 }
