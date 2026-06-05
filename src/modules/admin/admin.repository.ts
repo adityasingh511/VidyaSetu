@@ -1,29 +1,11 @@
 import { prisma } from "@/lib/prisma";
-import type { SeedNcertInput, NcertBookSeed } from "./admin.types";
+import type { SeedNcertInput } from "./admin.types";
 
 export class AdminRepository {
-  static async getAcademicClassByLevel(level: number) {
-    return prisma.academicClass.findUnique({ where: { level } });
-  }
-
-  static async getSubjectByName(academicClassId: string, name: string) {
-    return prisma.subject.findFirst({
-      where: { academicClassId, name },
-      select: { id: true },
-    });
-  }
-
   static async getTopicById(topicId: string) {
     return prisma.topic.findUnique({
       where: { id: topicId },
       select: { id: true, title: true },
-    });
-  }
-
-  static async getClassIdByGrade(grade: number) {
-    return prisma.academicClass.findUnique({
-      where: { level: grade },
-      select: { id: true },
     });
   }
 

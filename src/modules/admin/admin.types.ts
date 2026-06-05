@@ -17,12 +17,6 @@ export class AdminApiError extends Error {
 export type SeedNcertInput = z.infer<typeof seedNcertSchema>;
 export type AddQuestionInput = z.infer<typeof addQuestionSchema>;
 
-export type NcertBookSeed = {
-  grade: number;
-  subject: string;
-  chapters: string[];
-};
-
 export type SeedResult = {
   classesCreated: number;
   subjectsCreated: number;

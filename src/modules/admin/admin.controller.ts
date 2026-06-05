@@ -48,11 +48,19 @@ function handleAdminError(error: unknown) {
   return NextResponse.json({ message }, { status: 500 });
 }
 
+async function parseJson(request: Request) {
+  try {
+    return await request.json();
+  } catch {
+    throw new AdminApiError("Invalid JSON request body", 400);
+  }
+}
+
 export class AdminController {
   static async seedNcert(request: Request) {
     try {
       const admin = await requireAdmin();
-      const body = await request.json();
+      const body = await parseJson(request);
       const input = seedNcertSchema.parse(body);
       const result = await AdminServices.seedNcert(input);
 
@@ -70,7 +78,7 @@ export class AdminController {
   static async addQuestion(request: Request) {
     try {
       const admin = await requireAdmin();
-      const body = await request.json();
+      const body = await parseJson(request);
       const input = addQuestionSchema.parse(body);
       const question = await AdminServices.addQuestion(input);
 
