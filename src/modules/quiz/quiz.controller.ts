@@ -96,4 +96,42 @@ export class QuizControllers {
       return handleQuizError(error);
     }
   }
+
+  static async getSession(request: Request) {
+    try {
+      const url = new URL(request.url);
+      const sessionId = url.searchParams.get('sessionId');
+      const userId = url.searchParams.get('userId');
+
+      if (!sessionId || !userId) {
+        throw new QuizApiError('sessionId and userId are required', 400);
+      }
+
+      const result = await QuizServices.getSession(sessionId, userId);
+
+      return NextResponse.json({ data: result });
+    } catch (error) {
+      return handleQuizError(error);
+    }
+  }
+
+  static async getHistory(request: Request) {
+    try {
+      const url = new URL(request.url);
+      const userId = url.searchParams.get('userId');
+
+      if (!userId) {
+        throw new QuizApiError('userId is required', 400);
+      }
+
+      const page = Math.max(1, Number(url.searchParams.get('page')) || 1);
+      const limit = Math.max(1, Number(url.searchParams.get('limit')) || 10);
+
+      const result = await QuizServices.getQuizHistory(userId, page, limit);
+
+      return NextResponse.json({ data: result });
+    } catch (error) {
+      return handleQuizError(error);
+    }
+  }
 }

@@ -15,6 +15,15 @@ const calculateAccuracy = (correctCount: number, totalQuestions: number) => {
   return Number(((correctCount / totalQuestions) * 100).toFixed(2));
 };
 
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
 export class QuizServices {
   static async createQuiz(input: CreateQuizInput) {
     const user = await QuizRepository.findUserById(input.userId);
@@ -62,6 +71,13 @@ export class QuizServices {
       }
     }
 
+    if (input.source === 'CUSTOM' || input.source === 'AI') {
+      throw new QuizApiError(
+        `${input.source} quiz source is not yet supported`,
+        501
+      );
+    }
+
     if (['CHAPTER', 'TOPIC'].includes(input.source) && questions.length === 0) {
       throw new QuizApiError('No questions found for this quiz source', 404);
     }
@@ -73,12 +89,12 @@ export class QuizServices {
       chapterId: input.chapterId ?? null,
       topicId: input.topicId ?? null,
       noteId: input.noteId ?? null,
-      questionCount: questions.length || input.questionCount,
+      questionCount: input.questionCount,
     });
 
     return {
       quiz,
-      questions,
+      questions: shuffleArray(questions),
     };
   }
 
@@ -101,6 +117,67 @@ export class QuizServices {
       accuracy: 0,
       timeTaken: 0,
     });
+  }
+
+  static async getSession(sessionId: string, userId: string) {
+    const session = await QuizRepository.findSessionWithResponses(sessionId);
+
+    if (!session) {
+      throw new QuizApiError('Quiz session not found', 404);
+    }
+
+    if (session.userId !== userId) {
+      throw new QuizApiError('You are not allowed to view this session', 403);
+    }
+
+    const sanitizedResponses = session.responses.map((r: any) => ({
+      id: r.id,
+      questionId: r.questionId,
+      selectedOptionId: r.selectedOptionId,
+      subjectiveAnswer: r.subjectiveAnswer,
+      isCorrect: r.isCorrect,
+      score: r.score,
+      timeTaken: r.timeTaken,
+      question: {
+        id: r.question.id,
+        type: r.question.type,
+        difficulty: r.question.difficulty,
+        questionText: r.question.questionText,
+        explanation: r.question.explanation,
+        options: r.question.options,
+      },
+    }));
+
+    return {
+      session: {
+        id: session.id,
+        quizId: session.quizId,
+        totalQuestions: session.totalQuestions,
+        correctCount: session.correctCount,
+        accuracy: session.accuracy,
+        timeTaken: session.timeTaken,
+        startedAt: session.startedAt,
+        completedAt: session.completedAt,
+        quiz: {
+          id: session.quiz.id,
+          mode: session.quiz.mode,
+          source: session.quiz.source,
+        },
+      },
+      responses: sanitizedResponses,
+    };
+  }
+
+  static async getQuizHistory(userId: string, page: number, limit: number) {
+    const safeLimit = Math.min(limit, 50);
+    const sessions = await QuizRepository.getUserSessions(
+      userId,
+      page,
+      safeLimit
+    );
+    const total = await QuizRepository.countUserSessions(userId);
+
+    return { sessions, total, page, limit: safeLimit };
   }
 
   static async submitQuiz(input: SubmitQuizInput) {
@@ -179,6 +256,8 @@ export class QuizServices {
       completedAt: new Date(),
     });
 
+    await QuizServices.updateUserStats(session.userId);
+
     return {
       session: updatedSession,
       summary: {
@@ -189,5 +268,49 @@ export class QuizServices {
         timeTaken: totalTimeTaken,
       },
     };
+  }
+
+  private static async updateUserStats(userId: string) {
+    const [sessionCount, allResponses] = await Promise.all([
+      QuizRepository.countUserSessions(userId),
+      QuizRepository.getAllResponsesWithDifficulty(userId),
+    ]);
+
+    let totalCorrect = 0;
+    let totalQuestions = 0;
+    let easyCorrect = 0;
+    let easyTotal = 0;
+    let mediumCorrect = 0;
+    let mediumTotal = 0;
+    let hardCorrect = 0;
+    let hardTotal = 0;
+
+    for (const r of allResponses) {
+      totalQuestions++;
+      if (r.isCorrect) totalCorrect++;
+
+      const diff = r.question.difficulty;
+      if (diff === 'EASY') {
+        easyTotal++;
+        if (r.isCorrect) easyCorrect++;
+      } else if (diff === 'MEDIUM') {
+        mediumTotal++;
+        if (r.isCorrect) mediumCorrect++;
+      } else if (diff === 'HARD') {
+        hardTotal++;
+        if (r.isCorrect) hardCorrect++;
+      }
+    }
+
+    await QuizRepository.upsertUserStats(userId, {
+      userId,
+      totalSessions: sessionCount,
+      totalQuestions,
+      totalCorrect,
+      overallAccuracy: calculateAccuracy(totalCorrect, totalQuestions),
+      easyAccuracy: calculateAccuracy(easyCorrect, easyTotal),
+      mediumAccuracy: calculateAccuracy(mediumCorrect, mediumTotal),
+      hardAccuracy: calculateAccuracy(hardCorrect, hardTotal),
+    });
   }
 }

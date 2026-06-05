@@ -95,6 +95,7 @@ export class QuizRepository {
   static findQuizById(quizId: string) {
     return prisma.quiz.findUnique({
       where: { id: quizId },
+      include: { sessions: true },
     });
   }
 
@@ -111,12 +112,48 @@ export class QuizRepository {
     });
   }
 
+  static findSessionWithResponses(sessionId: string) {
+    return prisma.quizSession.findUnique({
+      where: { id: sessionId },
+      include: {
+        quiz: {
+          select: {
+            id: true,
+            mode: true,
+            source: true,
+          },
+        },
+        responses: {
+          include: {
+            question: {
+              select: {
+                id: true,
+                type: true,
+                difficulty: true,
+                questionText: true,
+                explanation: true,
+                options: {
+                  select: {
+                    id: true,
+                    label: true,
+                    value: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
   static findQuestionById(questionId: string) {
     return prisma.question.findUnique({
       where: { id: questionId },
       select: {
         id: true,
         type: true,
+        difficulty: true,
       },
     });
   }
@@ -129,6 +166,13 @@ export class QuizRepository {
         questionId: true,
         isCorrect: true,
       },
+    });
+  }
+
+  static findQuestionsByIds(questionIds: string[]) {
+    return prisma.question.findMany({
+      where: { id: { in: questionIds } },
+      select: { id: true, difficulty: true },
     });
   }
 
@@ -145,6 +189,66 @@ export class QuizRepository {
     return prisma.quizSession.update({
       where: { id: sessionId },
       data,
+    });
+  }
+
+  static getUserSessions(userId: string, page: number, limit: number) {
+    return prisma.quizSession.findMany({
+      where: { userId },
+      skip: (page - 1) * limit,
+      take: limit,
+      orderBy: { completedAt: { sort: 'desc', nulls: 'last' } },
+      include: {
+        quiz: {
+          select: {
+            id: true,
+            mode: true,
+            source: true,
+            chapterId: true,
+            topicId: true,
+            createdAt: true,
+          },
+        },
+      },
+    });
+  }
+
+  static countUserSessions(userId: string) {
+    return prisma.quizSession.count({ where: { userId } });
+  }
+
+  static getUserStats(userId: string) {
+    return prisma.userStats.findUnique({ where: { userId } });
+  }
+
+  static getAllResponsesWithDifficulty(userId: string) {
+    return prisma.questionResponse.findMany({
+      where: { session: { userId } },
+      select: {
+        isCorrect: true,
+        question: {
+          select: { difficulty: true },
+        },
+      },
+    });
+  }
+
+  static upsertUserStats(
+    userId: string,
+    data: Prisma.UserStatsUncheckedCreateInput
+  ) {
+    return prisma.userStats.upsert({
+      where: { userId },
+      create: data,
+      update: {
+        totalSessions: data.totalSessions,
+        totalQuestions: data.totalQuestions,
+        totalCorrect: data.totalCorrect,
+        overallAccuracy: data.overallAccuracy,
+        easyAccuracy: data.easyAccuracy,
+        mediumAccuracy: data.mediumAccuracy,
+        hardAccuracy: data.hardAccuracy,
+      },
     });
   }
 }
