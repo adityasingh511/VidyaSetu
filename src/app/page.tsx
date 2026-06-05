@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Senv from '../../public/Study environment.png';
 import DV from '../../public/Data visualization.png';
 import { useRouter } from 'next/navigation';
+import Link from "next/link";
 
 export default function Home() {
   const router = useRouter();
@@ -28,7 +29,9 @@ export default function Home() {
               />
             </svg>
 
-            <p>L</p>
+            <Link href="/login" className="text-sm font-medium text-black hover:opacity-65 transition-opacity">
+              Login
+            </Link>
           </div>
         </div>
 
