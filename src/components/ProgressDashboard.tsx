@@ -39,7 +39,6 @@ function ProgressDashboard({
 }: React.ComponentProps<'div'>) {
   const [data, setData] = React.useState<DashboardData | null>(null);
   const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     async function fetchAnalytics() {
@@ -55,23 +54,8 @@ function ProgressDashboard({
               totalQuizzes: json.data.totalAttempts ?? 0,
               totalTimeSpent: (json.data.totalAttempts ?? 0) * 15, // estimated 15 mins per quiz
               streakDays: json.data.currentStreak ?? 0,
-              subjects: [
-                { subject: 'Physics', completed: 4, total: 10, percentage: 40 },
-                {
-                  subject: 'Chemistry',
-                  completed: 8,
-                  total: 10,
-                  percentage: 80,
-                },
-                { subject: 'Biology', completed: 2, total: 10, percentage: 20 },
-              ],
-              accuracyTrend: [
-                { label: 'Quiz 1', value: 60 },
-                { label: 'Quiz 2', value: 75 },
-                { label: 'Quiz 3', value: 70 },
-                { label: 'Quiz 4', value: 85 },
-                { label: 'Quiz 5', value: json.data.accuracy ?? 90 },
-              ],
+              subjects: [],
+              accuracyTrend: [],
               studyTimeByDay: json.data.dailyActivity
                 ? json.data.dailyActivity.map(
                     (d: { day: string; date: string; active: boolean }) => ({
@@ -80,32 +64,14 @@ function ProgressDashboard({
                       color: d.active ? '#f59e0b' : '#e5e7eb',
                     })
                   )
-                : [
-                    { label: 'Mon', value: 30 },
-                    { label: 'Tue', value: 45 },
-                    { label: 'Wed', value: 0 },
-                    { label: 'Thu', value: 60 },
-                    { label: 'Fri', value: 30 },
-                    { label: 'Sat', value: 15 },
-                    { label: 'Sun', value: 0 },
-                  ],
-              achievements:
-                json.data.currentStreak >= 3
-                  ? ['First Quiz', '3 Day Streak']
-                  : ['First Quiz'],
-              recentChapters: [
-                { chapter: 'Electrostatics', completed: true, score: 85 },
-                { chapter: 'Chemical Bonding', completed: false, score: 60 },
-              ],
+                : [],
+              achievements: [],
+              recentChapters: [],
             });
-          } else {
-            setError('Failed to parse analytics payload');
           }
-        } else {
-          setError('Analytics API not yet available');
         }
       } catch {
-        setError('Failed to load analytics');
+        // Fail silently
       } finally {
         setLoading(false);
       }

@@ -152,7 +152,7 @@ export class QuizRepository {
 
   static createQuestionResponses(
     data: Prisma.QuestionResponseCreateManyInput[],
-    tx?: any
+    tx?: Prisma.TransactionClient
   ) {
     const client = tx || prisma;
     return client.questionResponse.createMany({ data });
@@ -161,7 +161,7 @@ export class QuizRepository {
   static updateSession(
     sessionId: string,
     data: Prisma.QuizSessionUncheckedUpdateInput,
-    tx?: any
+    tx?: Prisma.TransactionClient
   ) {
     const client = tx || prisma;
     return client.quizSession.update({

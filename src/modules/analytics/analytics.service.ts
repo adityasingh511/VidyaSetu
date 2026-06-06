@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import type { Prisma } from '@/generated/prisma/client';
 import AnalyticsRepository from './analytics.repository';
 import type { StreakData, ActivityDay } from './analytics.types';
 import type { WeakTopicsResponse } from './analytics.types';
@@ -11,22 +12,11 @@ type WeakTopicsParams = z.infer<typeof weakTopicsQuerySchema>;
 export default class AnalyticsService {
   static async analytics(userId: string) {
     const { userStats, sessionCount, sessions } =
-      await AnalyticsRepository.getOverview(userId);
-    const [overview, streakData] = await Promise.all([
-      AnalyticsRepository.getOverview(userId),
-      AnalyticsService.getStreakData(userId),
-    ]);
+      await AnalyticsRepository.getOverview7Days(userId);
 
-    const { user, sessionCount, sessions } = overview;
     const totalAttempts = sessionCount;
 
     // Derived overall accuracy from totalCorrect / totalQuestions with guard
-    let totalAccuracy = 0;
-
-    for (const session of sessions) {
-      totalAccuracy += session.accuracy;
-    }
-
     const accuracy =
       userStats && userStats.totalQuestions > 0
         ? Number(
@@ -89,8 +79,7 @@ export default class AnalyticsService {
   static async updateStatsAndStreak(
     userId: string,
     session: { totalQuestions: number; correctCount: number },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    tx?: any
+    tx?: Prisma.TransactionClient
   ) {
     const client = tx || prisma;
     const today = new Date();
@@ -153,12 +142,6 @@ export default class AnalyticsService {
         lastActivityDate: today,
       },
     });
-    return {
-      totalAttempts,
-      accuracy,
-      currentStreak: streakData.currentStreak,
-      lastActivity: streakData.lastActivityDate,
-    };
   }
 
   static async getStreakData(userId: string): Promise<StreakData> {
@@ -214,8 +197,11 @@ export default class AnalyticsService {
         const prev = sortedAsc[i - 1];
         const curr = sortedAsc[i];
         const prevParts = prev.split('-').map(Number);
-        const currParts = curr.split('-').map(Number);
-        const expected = new Date(prevParts[0], prevParts[1] - 1, prevParts[2] + 1);
+        const expected = new Date(
+          prevParts[0],
+          prevParts[1] - 1,
+          prevParts[2] + 1
+        );
         const expectedKey = dateToKey(expected);
 
         if (curr === expectedKey) {

@@ -63,7 +63,11 @@ export class QuizServices {
       );
     }
 
-    if (input.source === 'NOTE' || input.source === 'CUSTOM' || input.source === 'AI') {
+    if (
+      input.source === 'NOTE' ||
+      input.source === 'CUSTOM' ||
+      input.source === 'AI'
+    ) {
       throw new QuizApiError(
         `${input.source} quiz source is not yet supported`,
         501
@@ -122,7 +126,7 @@ export class QuizServices {
       throw new QuizApiError('You are not allowed to view this session', 403);
     }
 
-    const sanitizedResponses = session.responses.map((r: any) => ({
+    const sanitizedResponses = session.responses.map((r) => ({
       id: r.id,
       questionId: r.questionId,
       selectedOptionId: r.selectedOptionId,
@@ -196,15 +200,18 @@ export class QuizServices {
 
     const questionMap = new Map(questions.map((q) => [q.id, q]));
 
-    const optionIds = [...new Set(
-      input.responses
-        .filter((r) => r.selectedOptionId)
-        .map((r) => r.selectedOptionId!)
-    )];
+    const optionIds = [
+      ...new Set(
+        input.responses
+          .filter((r) => r.selectedOptionId)
+          .map((r) => r.selectedOptionId!)
+      ),
+    ];
 
-    const options = optionIds.length > 0
-      ? await QuizRepository.findOptionsByIds(optionIds)
-      : [];
+    const options =
+      optionIds.length > 0
+        ? await QuizRepository.findOptionsByIds(optionIds)
+        : [];
 
     const optionMap = new Map(options.map((o) => [o.id, o]));
 

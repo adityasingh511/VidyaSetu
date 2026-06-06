@@ -34,12 +34,13 @@ export function StreakWidget({
   const prevStreakRef = React.useRef(currentStreak);
 
   React.useEffect(() => {
-    if (currentStreak > prevStreakRef.current) {
+    const prev = prevStreakRef.current;
+    prevStreakRef.current = currentStreak;
+    if (currentStreak > prev) {
       setAnimate(true);
       const timer = setTimeout(() => setAnimate(false), 600);
       return () => clearTimeout(timer);
     }
-    prevStreakRef.current = currentStreak;
   }, [currentStreak]);
 
   // Construct chart data for the streak history chart
