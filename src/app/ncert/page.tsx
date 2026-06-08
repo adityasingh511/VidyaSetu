@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import React, { use, useEffect } from 'react';
 import { da } from 'zod/locales';
 
-export default function page() {
+export default function Page() {
   const router = useRouter();
 
   const classData = [

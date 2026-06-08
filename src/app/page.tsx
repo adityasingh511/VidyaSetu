@@ -6,7 +6,6 @@ import Senv from '../../public/Study environment.png';
 import DV from '../../public/Data visualization.png';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import authFetch from '../lib/auth/authFetch';
 
