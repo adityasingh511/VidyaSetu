@@ -33,9 +33,9 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password }),
         credentials: 'include',
       });
-
+     
       const result = await user.json();
-
+     
       if (!user.ok || !result.user) {
         setErr(result.message || result.error || 'Login failed. Please check your credentials.');
         return;

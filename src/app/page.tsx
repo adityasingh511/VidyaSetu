@@ -13,21 +13,21 @@ export default function Home() {
   const router = useRouter();
   const [user, setUser] = useState<{ name: string } | null>(null);
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const response = await authFetch({
-          url: '/api/user/getUser',
-          options: { method: 'GET' },
-        });
+useEffect(() => {
+  const fetchUser = async () => {
+    try {
+      const response = await authFetch({
+        url: '/api/user/getUser', 
+        options: { method: 'GET' },
+      });
 
-        if (response?.user) {
-          setUser(response.user);
-        }
-      } catch (error) {
-        log.error('User fetch failed');
+      if (response?.user) {
+        setUser(response.user);
       }
-    };
+    } catch (error) {
+      log.error('User fetch failed');
+    }
+  };
 
     fetchUser();
   }, []);
