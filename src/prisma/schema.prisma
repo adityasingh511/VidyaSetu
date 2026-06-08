@@ -30,7 +30,12 @@ model User {
   quizSessions     QuizSession[]
   refreshTokens    RefreshToken[]
   stats            UserStats?
+<<<<<<< HEAD
   notifications    Notification[]
+=======
+  bookmarks        Bookmark[]
+
+>>>>>>> 91e2a4afee6d127764cfda49b143ab4a4e5c34c7
   @@index([email])
 }
 model Account {
@@ -89,6 +94,7 @@ model Chapter {
   contentFormat String?
   contentSource String?
   topics        Topic[]
+  bookmarks        Bookmark[]
 
   @@index([subjectId])
 }
@@ -245,6 +251,20 @@ model UserStats {
   updatedAt       DateTime  @updatedAt
   user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
+
+model Bookmark {
+  id        String   @id @default(uuid())
+  userId    String
+  chapterId String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chapter   Chapter  @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, chapterId])
+  @@index([userId])
+  @@index([chapterId])
+}
+
 
 enum UserRole {
   STUDENT
